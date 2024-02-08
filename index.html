@@ -79,13 +79,8 @@
               translations.forEach(translation => {
                 var li = document.createElement('li');
                 li.textContent = translation.originalText;
-                var li2 = document.createElement('li');
 
-                const response = query({ "inputs": "<|system|> You are a translation bot that translates text from Korean to English!</s> <|text|>    " + translation.originalText + "    </s> <|translator|> ", "parameters": { "max_new_tokens": 50, "temperature": 0.7 } });
-                let text_response = response[0].generated_text;
-                li2.textContent = text_response
                 outputList.appendChild(li);
-                translatedOutput.appendChild(li2)
               });
 
               async function query(data) {
