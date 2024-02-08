@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Convert Image to Base64 and Display Translations</title>
+</head>
+
+<body>
+  <h2><strong>Upload</strong> a screenshot and it will output the raw Japanese characters found.</h2>
+  <h3>Make sure to only upload a couple of pages at a time, but not 10 pages in one screenshot!</h3>
+  <!-- Input element for selecting the image -->
+  <input type="file" id="imageInput" />
+  <!-- Unordered list to display the original texts -->
+  <ul id="outputList"></ul>
+  <ul id="translatedOutput"></ul>
+
+  <script>
+    // Get the file input element
+    var imageInput = document.getElementById('imageInput');
+    // Get the unordered list element
+    var outputList = document.getElementById('outputList');
+    var translatedOutput = document.getElementById("translatedOutput")
+
+    // Clear the output list
+    function clearOutput() {
+      outputList.innerHTML = '';
+    }
+
+    // Add an event listener for the 'change' event
+    imageInput.addEventListener('change', function (event) {
+      // Clear the current output list
+      clearOutput();
+
+      // Get the selected file
+      var file = event.target.files[0];
+
+      // Check if a file was selected
+      if (file) {
+        // Create a new FileReader instance
+        var reader = new FileReader();
+
+        // Set the onload event handler to process the file once it's read
+        reader.onload = function (readerEvent) {
+          // The result attribute contains the Base64 string
+          var base64String = readerEvent.target.result;
+
+          // Perform the fetch request
+          fetch("https://dolphin-app-ys43m.ondigitalocean.app/api/translate", {
+            headers: {
+              "accept": "application/json",
+              "accept-language": "en-US,en;q=0.9,nl;q=0.8",
+              "authorization": "null",
+              "cache-control": "no-cache",
+              "content-type": "application/json",
+              "pragma": "no-cache",
+              "sec-ch-ua": "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"Chrome OS\"",
+              "sec-fetch-dest": "empty",
+              "sec-fetch-mode": "cors",
+              "sec-fetch-site": "cross-site"
+            },
+            referrer: "https://scan-translator.com/",
+            referrerPolicy: "strict-origin-when-cross-origin",
+            body: JSON.stringify({
+              imageBase64: base64String,
+              targetLang: "en"
+            }),
+            method: "POST"
+          })
+            .then(response => response.json()) // Parse the JSON response
+            .then(data => {
+              // Assuming the response contains a 'translations' array
+              const translations = data.translations;
+
+              // Update the output list with the original texts
+              translations.forEach(translation => {
+                var li = document.createElement('li');
+                li.textContent = translation.originalText;
+                var li2 = document.createElement('li');
+
+                const response = query({ "inputs": "<|system|> You are a translation bot that translates text from Korean to English!</s> <|text|>    " + translation.originalText + "    </s> <|translator|> ", "parameters": { "max_new_tokens": 50, "temperature": 0.7 } });
+                let text_response = response[0].generated_text;
+                li2.textContent = text_response
+                outputList.appendChild(li);
+                translatedOutput.appendChild(li2)
+              });
+
+              async function query(data) {
+                const response = await fetch(
+                  "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta",
+                  {
+                    headers: { Authorization: "Bearer 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" },
+                    method: "POST",
+                    body: JSON.stringify(data),
+                  }
+                );
+                const result = await response.json();
+                return result;
+              }
+            })
+            .catch(error => console.error('Error:', error));
+        };
+
+        // Start reading the file as a Base64 string
+        reader.readAsDataURL(file);
+      }
+    });
+  </script>
+</body>
+
+</html>
