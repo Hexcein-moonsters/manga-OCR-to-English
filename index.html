@@ -8,36 +8,34 @@
 </head>
 
 <body>
-  <h2><u>Upload</u> a screenshot and it will output the raw Japanese characters found.</h2>
-  <h3>Make sure to only upload a couple of pages at a time, but not 10 pages in one screenshot!</h3>
-  <!-- Input element for selecting the image -->
-  <input type="file" id="imageInput" />
-  <!-- Unordered list to display the original texts -->
-  <ul id="outputList"></ul>
-  <ul id="translatedOutput"></ul>
+  <h2><u>Upload</u> screenshots and it will output the raw Japanese characters found.</h2>
+  <h3>Make sure to only upload a couple of pages at a time, but not  10 pages in one screenshot!</h3>
+  <!-- Input element for selecting the images -->
+  <input type="file" id="imageInput" multiple />
+  <!-- Container for output lists -->
+  <div id="outputContainer"></div>
 
   <script>
     // Get the file input element
     var imageInput = document.getElementById('imageInput');
-    // Get the unordered list element
-    var outputList = document.getElementById('outputList');
-    var translatedOutput = document.getElementById("translatedOutput")
+    // Get the container element for output lists
+    var outputContainer = document.getElementById('outputContainer');
 
-    // Clear the output list
+    // Clear the output container
     function clearOutput() {
-      outputList.innerHTML = '';
+      outputContainer.innerHTML = '';
     }
 
     // Add an event listener for the 'change' event
     imageInput.addEventListener('change', function (event) {
-      // Clear the current output list
+      // Clear the current output container
       clearOutput();
 
-      // Get the selected file
-      var file = event.target.files[0];
+      // Get the selected files
+      var files = event.target.files;
 
-      // Check if a file was selected
-      if (file) {
+      // Loop through each file
+      Array.from(files).forEach((file, index) => {
         // Create a new FileReader instance
         var reader = new FileReader();
 
@@ -75,19 +73,25 @@
               // Assuming the response contains a 'translations' array
               const translations = data.translations;
 
+              // Create a new unordered list for the current file
+              var outputList = document.createElement('ul');
+              outputList.id = 'outputList' + index;
+
               // Update the output list with the original texts
               translations.forEach(translation => {
                 var li = document.createElement('li');
                 li.textContent = translation.originalText;
-
                 outputList.appendChild(li);
               });
+
+              // Append the output list to the container
+              outputContainer.appendChild(outputList);
             });
 
         // Start reading the file as a Base64 string
         reader.readAsDataURL(file);
-      }
-    };
+      });
+    });
   </script>
 </body>
 
